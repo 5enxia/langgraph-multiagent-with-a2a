@@ -4,10 +4,8 @@ from typing import Any
 from uuid import uuid4
 
 import httpx
-from a2a.client import A2ACardResolver, ClientConfig, ClientFactory, A2AClient
+from a2a.client import A2ACardResolver, ClientConfig, ClientFactory
 from a2a.types import AgentCard, Message, Part, PushNotificationConfig, Role, TextPart
-from langchain_core.tools import tool
-# from strands.types.tools import AgentTool
 from langchain_core.tools import BaseTool as AgentTool, StructuredTool
 
 DEFAULT_TIMEOUT = 300  # set request timeout to 5 minutes
