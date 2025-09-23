@@ -1,50 +1,50 @@
-# Implementing LangGraph Supervisor Multi-Agent System with A2A Protocol
+# langgraph-supervisorで作成したSupervisor型マルチエージェントをA2A Protocolを用いて再実装
 
-## Overview
+## 概要
 
-This repository demonstrates how to implement a Supervisor-type multi-agent system using the A2A Protocol, originally created with LangGraph.
-We first explain how to build a Supervisor-type multi-agent system using `langgraph-supervisor`, then reimplement the same system using the A2A Protocol.
+このリポジトリでは、LangGraphを使用して作成したSupervisor型マルチエージェントをA2A Protocolを用いて実装する方法を示します。
+はじめに、`langgraph-supervisor`を用いたSupervisor型マルチエージェントシステムの構築方法を説明し、その後、A2A Protocolを用いて同様のシステムを再実装します。
 
 https://github.com/a2aproject/A2A
 
-## Motivation
+## モチベーション
 
-While StrandsAgent and Google ADK provide A2A Protocol modules as libraries, LangGraph does not yet have such modules.
-Additionally, there are still few examples of implementing supervisor-type multi-agent systems. By demonstrating the implementation method with LangGraph, we aim to provide a reference for other developers building similar systems.
+StrandsAgentやGoogle ADKではA2A Protocolを用いたモジュールがライブラリとして提供されていますが、LangGraphにはそのようなモジュールがまだありません。
+また、supervisor型マルチエージェントを実装した例もまだ少なく、LangGraphでの実装方法を示すことで、他の開発者が同様のシステムを構築する際の参考になると考え、取り組みました。
 
-## Sample Code
+## サンプルコード
 
-The code introduced in this article is published on GitHub.
+本記事で紹介しているコードはGitHubで公開しています。
 
 https://github.com/5enxia/langgraph-multiagent-with-a2a
 
-## Implementing Supervisor-Type Multi-Agent with `langgraph-supervisor`
+## `langgraph-supervisor`を用いたSupervisor型マルチエージェントの実装
 
-### Environment Setup
+### 環境設定
 
-We use `uv` for package management.
-The author implemented this using `python 3.13`.
+前提として、パッケージ管理として`uv`を使用しています。
+また、筆者は`python 3.13`を使用して実装しています。
 
 https://github.com/astral-sh/uv
 
-First, install the necessary libraries:
+まず、必要なライブラリをインストールします。
 
 ```sh
 uv add langchain langchain-google-genai langchain-openai langgraph langgraph-supervisor a2a-sdk[http-server]
 ```
 
-Next, set the following environment variables.
-Use your preferred LLM.
-The code examples use the `gpt-4.1` family.
+次に、以下の環境変数を設定します。
+LLMはお好みのものを使用してください。
+コード例では`gpt-4.1`ファミリーを使用しています。
 
 ```sh
 export OPENAI_API_KEY="your_openai_api_key"
 export GOOGLE_GENAI_API_KEY="your_google_genai_api_key"
 ```
 
-### Supervisor-Type Multi-Agent Implementation
+### Supervisor型マルチエージェントの実装
 
-Here's a code example implementing a Supervisor-type multi-agent using LangGraph:
+以下に、LangGraphを使用してSupervisor型マルチエージェントを実装するコード例を示します。
 
 ```python
 # langgraph-only/__main__.py
@@ -109,34 +109,34 @@ workflow = create_supervisor(
 )
 
 app = workflow.compile()
-content = "How much is 1 USD in JPY?"
-# content = "What's the weather in Tokyo?"
+content = "1ドルは何円ですか？"
+# content = "東京の天気は？"
 result = app.invoke({"messages": [HumanMessage(content=content)]})
 for message in result["messages"]:
     print(message)
 ```
 
-This code uses `langgraph_supervisor` to build a Supervisor-type multi-agent system.
-There are two agents: `currency_agent` and `weather_agent`, responsible for currency conversion and weather information respectively.
-The Supervisor assigns tasks to the appropriate agent based on user questions.
-※You can switch the commented lines to see which agent gets assigned the task.
+このコードでは、`langgraph_supervisor`を使用してSupervisor型マルチエージェントシステムを構築しています。
+`currency_agent`と`weather_agent`の2つのエージェントがあり、それぞれ通貨換算と天気情報の提供を担当します。
+Supervisorは、ユーザーからの質問に基づいて適切なエージェントにタスクを割り当てます。
+※コメントアウトされている部分を切り替えることで、どちらのエージェントにタスクが割り当てられるかを確認できます。
 
-### Execution
+### 実行
 
-Save the above code as `langgraph-only/__main__.py` and run it with:
+上記のコードを`langgraph-only/__main__.py`として保存し、以下のコマンドで実行します。
 
 ```sh
 uv run langgraph-only
 ```
 
-## Reimplementation with A2A Protocol
+## A2A Protocolを用いた再実装
 
-Next, we'll reimplement the same Supervisor-type multi-agent system using the A2A Protocol.
+次に、A2A Protocolを用いて同様のSupervisor型マルチエージェントシステムを再実装します。
 
 ### AgentExecutor
 
-In the A2A Protocol, you need to inherit from the `AgentExecutor` class to manage agent execution.
-Here's an example of the `LangGraphAgentExecutor` class for using LangGraph agents with the A2A Protocol:
+A2A Protocolでは、エージェントの実行を管理するために`AgentExecutor`というクラスを継承して使用する必要があります。
+以下に、LangGraphエージェントをA2A Protocolで使用するための`LangGraphAgentExecutor`クラスの例を示します。
 
 ```python
 # a2a/sub_agents/common/agent_executor.py
@@ -195,14 +195,29 @@ class LangGraphAgentExecutor(AgentExecutor):
                 if not is_task_complete and not require_user_input:
                     await updater.update_status(
                         TaskState.working,
-                        new_agent_text_message(item['content']),
+                        new_agent_text_message(
+                            item['content'],
+                            task.context_id,
+                            task.id,
+                        ),
                     )
                 elif require_user_input:
                     await updater.update_status(
                         TaskState.input_required,
-                        new_agent_text_message(item['content']),
-                        require_user_input=True,
+                        new_agent_text_message(
+                            item['content'],
+                            task.context_id,
+                            task.id,
+                        ),
+                        final=True,
                     )
+                    break
+                else:
+                    await updater.add_artifact(
+                        [Part(root=TextPart(text=item['content']))],
+                        name='conversion_result',
+                    )
+                    await updater.complete()
                     break
 
         except Exception as e:
@@ -218,16 +233,16 @@ class LangGraphAgentExecutor(AgentExecutor):
         raise ServerError(error=UnsupportedOperationError())
 ```
 
-This class inherits from the A2A Protocol's `AgentExecutor` and manages LangGraph agent execution.
-The `execute` method receives input from users (or potentially other agents), passes it to the LangGraph agent for processing.
-Depending on the processing progress, it sends messages or updates task status (`working`, `input_required`, `completed`, etc.).
-The `cancel` method defines handling for task cancellation.
-Since we don't specifically support cancel operations here, it returns an `UnsupportedOperationError`.
+このクラスは、A2A Protocolの`AgentExecutor`を継承し、LangGraphエージェントの実行を管理します。
+`execute`メソッドでは、ユーザー(場合によってはエージェント)からの入力を受け取り、LangGraphエージェントに渡して処理を行います。
+処理の進行状況に応じて、メッセージの送信またはタスクの状態を更新（`working`、`input_required`、`completed`など）します。
+タスクがキャンセルされた場合の処理は`cancel`メソッドで定義しています。
+ここでは、特にキャンセル操作をサポートしていないため、`UnsupportedOperationError`を返しています。
 
 #### Adapter
 
-The Adapter provides an interface between LangGraph agents and the A2A Protocol.
-This class is a custom implementation by the author that converts LangGraph agent messages to A2A Protocol Task format.
+Adapterは、LangGraphエージェントとA2A Protocolの間のインターフェースを提供します。
+このクラスは、筆者がカスタム実装したものでLangGraphのエージェントのメッセージをA2A ProtocolのTaskの形式に変換する役割を果たします。
 
 ```python
 # a2a/sub_agents/common/adapter.py
@@ -263,19 +278,19 @@ class LangGraphAgentAdapter:
             message = item['messages'][-1]
             if (
                 isinstance(message, AIMessage)
-                and hasattr(message, 'tool_calls')
+                and message.tool_calls
                 and len(message.tool_calls) > 0
             ):
                 yield {
                     'is_task_complete': False,
                     'require_user_input': False,
-                    'content': f"Using tool: {message.tool_calls[0]['name']}"
+                    'content': 'Looking up the exchange rates...',
                 }
             elif isinstance(message, ToolMessage):
                 yield {
                     'is_task_complete': False,
                     'require_user_input': False,
-                    'content': f"Tool result: {message.content}"
+                    'content': 'Processing the exchange rates..',
                 }
 
         yield self.get_agent_response(config)
@@ -294,8 +309,8 @@ class LangGraphAgentAdapter:
                 }
             if structured_response.status == 'error':
                 return {
-                    'is_task_complete': True,
-                    'require_user_input': False,
+                    'is_task_complete': False,
+                    'require_user_input': True,
                     'content': structured_response.message,
                 }
             if structured_response.status == 'completed':
@@ -317,9 +332,9 @@ class LangGraphAgentAdapter:
     SUPPORTED_CONTENT_TYPES = ['text', 'text/plain']
 ```
 
-### Sub-Agent Implementation
+### サブエージェントの実装
 
-Next, we'll implement the sub-agents (`currency_agent` and `weather_agent`) as independent A2A Servers.
+次に、サブエージェント（`currency_agent`と`weather_agent`）をそれぞれ独立したA2A Serverとして実装していきます。
 
 #### Currency Agent
 
@@ -525,20 +540,20 @@ server = A2AStarletteApplication(
 uvicorn.run(server.build(), host=host, port=port)
 ```
 
-After creating the LangGraph agent using `create_react_agent`, we define `AgentSkill` and `AgentCard`.
-`AgentSkill` and `AgentCard` are used to provide agent information (overview, skills, input/output types) according to A2A Protocol specifications.
-After setting up the http client and Push Notification configurations, we build the agent server using `A2AStarletteApplication` and start it with `uvicorn`.
+冒頭で`create_react_agent`を使用してLangGraphエージェントを作成した後、`AgentSkill`, `AgentCard`を定義しています。
+`AgentSkill`, `AgentCard`は、A2A Protocolの仕様に基づいてエージェント（概要、スキル、入出力の型）の情報提供のために使用されます。
+その他、httpクライアントやPush Notificationの設定をした後、`A2AStarletteApplication`を使用してエージェントサーバーを構築し、`uvicorn`で起動します。
 
-### Supervisor Agent Implementation
+### スーパーバイザーエージェントの実装
 
-Finally, we'll implement the Supervisor agent.
+最後に、Supervisorエージェントを実装していきます。
 
 #### A2AClientToolProvider
 
-Before defining the agent, we'll create a client to connect to sub-agents using the A2A Client.
-This is based on the Strands Agents A2A Client.
+エージェントを定義する前に、A2A Clientを使用してサブエージェントに接続するためのクライアントを作成します。
+こちらは、Strands AgentsのA2A Clientを参考にしています。
 
-This class provides tools for retrieving AgentCards from sub-agents and sending messages to sub-agents that have successfully retrieved AgentCards.
+このクラスはサブエージェントへのAgentCardの取得やAgentCardが取得できたサブエージェントへのメッセージ送信やの取得を行うためのツールを提供します。
 
 ```python
 # a2a/supervisor/a2a_client.py
@@ -562,6 +577,7 @@ import httpx
 from a2a.client import A2ACardResolver, ClientConfig, ClientFactory, A2AClient
 from a2a.types import AgentCard, Message, Part, PushNotificationConfig, Role, TextPart
 from langchain_core.tools import tool
+# from strands.types.tools import AgentTool
 from langchain_core.tools import BaseTool as AgentTool, StructuredTool
 
 DEFAULT_TIMEOUT = 300  # set request timeout to 5 minutes
@@ -620,11 +636,13 @@ class A2AClientToolProvider:
         ]
         return tools
 
+
     async def _ensure_httpx_client(self) -> httpx.AsyncClient:
         """Ensure the shared HTTP client is initialized."""
         if self._httpx_client is None:
             self._httpx_client = httpx.AsyncClient(timeout=self.timeout)
         return self._httpx_client
+
 
     async def _ensure_client_factory(self) -> ClientFactory:
         """Ensure the ClientFactory is initialized."""
@@ -632,17 +650,19 @@ class A2AClientToolProvider:
             httpx_client = await self._ensure_httpx_client()
             config = ClientConfig(
                 httpx_client=httpx_client,
-                streaming=False,
+                streaming=False,  # Use non-streaming mode for simpler response handling
                 push_notification_configs=[self._push_config] if self._push_config else [],
             )
             self._client_factory = ClientFactory(config)
         return self._client_factory
+
 
     async def _create_a2a_card_resolver(self, url: str) -> A2ACardResolver:
         """Create a new A2A card resolver for the given URL."""
         httpx_client = await self._ensure_httpx_client()
         logger.info(f"A2ACardResolver created for {url}")
         return A2ACardResolver(httpx_client=httpx_client, base_url=url)
+
 
     async def _discover_known_agents(self) -> None:
         """Discover all agents provided during initialization."""
@@ -660,10 +680,12 @@ class A2AClientToolProvider:
 
         self._initial_discovery_done = True
 
+
     async def _ensure_discovered_known_agents(self) -> None:
         """Ensure initial discovery of agent URLs from constructor has been done."""
         if not self._initial_discovery_done and self._known_agent_urls:
             await self._discover_known_agents()
+
 
     async def _discover_agent_card(self, url: str) -> AgentCard:
         """Internal method to discover and cache an agent card."""
@@ -677,6 +699,8 @@ class A2AClientToolProvider:
 
         return agent_card
 
+
+    # @tool
     async def a2a_discover_agent(self, url: str) -> dict[str, Any]:
         """
         Discover an A2A agent and return its agent card with capabilities.
@@ -690,11 +714,12 @@ class A2AClientToolProvider:
         Returns:
             dict: Discovery result including:
                 - success: Whether the operation succeeded
-                - agent_card: The discovered agent card (if successful)
+                - agent_card: The full agent card data (if successful)
                 - error: Error message (if failed)
                 - url: The agent URL that was queried
         """
         return await self._discover_agent_card_tool(url)
+
 
     async def _discover_agent_card_tool(self, url: str) -> dict[str, Any]:
         """Internal async implementation for discover_agent_card tool."""
@@ -714,6 +739,8 @@ class A2AClientToolProvider:
                 "url": url,
             }
 
+
+    # @tool
     async def a2a_list_discovered_agents(self) -> dict[str, Any]:
         """
         List all discovered A2A agents and their capabilities.
@@ -721,10 +748,11 @@ class A2AClientToolProvider:
         Returns:
             dict: Information about all discovered agents including:
                 - success: Whether the operation succeeded
-                - agents: List of discovered agent cards
+                - agents: List of discovered agents with their details
                 - total_count: Total number of discovered agents
         """
         return await self._list_discovered_agents()
+
 
     async def _list_discovered_agents(self) -> dict[str, Any]:
         """Internal async implementation for list_discovered_agents."""
@@ -747,6 +775,8 @@ class A2AClientToolProvider:
                 "total_count": 0,
             }
 
+
+    # @tool
     async def a2a_send_message(
         self, message_text: str, target_agent_url: str, message_id: str | None = None
     ) -> dict[str, Any]:
@@ -761,12 +791,13 @@ class A2AClientToolProvider:
         Returns:
             dict: Response data including:
                 - success: Whether the message was sent successfully
-                - response: The agent's response message (if successful)
+                - response: The agent's response data (if successful)
                 - error: Error message (if failed)
-                - message_id: The message ID used for tracking
+                - message_id: The message ID used
                 - target_agent_url: The agent URL that was contacted
         """
         return await self._send_message(message_text, target_agent_url, message_id)
+
 
     async def _send_message(
         self, message_text: str, target_agent_url: str, message_id: str | None = None
@@ -787,7 +818,7 @@ class A2AClientToolProvider:
             message = Message(
                 kind="message",
                 role=Role.user,
-                parts=[TextPart(text=message_text)],
+                parts=[Part(TextPart(kind="text", text=message_text))],
                 message_id=message_id,
             )
 
@@ -796,14 +827,32 @@ class A2AClientToolProvider:
             # With streaming=False, this will yield exactly one result
             async for event in client.send_message(message):
                 if isinstance(event, Message):
-                    response_content = ""
-                    for part in event.parts:
-                        if hasattr(part, 'text'):
-                            response_content += part.text
-
+                    # Direct message response
                     return {
                         "status": "success",
-                        "response": response_content,
+                        "response": event.model_dump(mode="python", exclude_none=True),
+                        "message_id": message_id,
+                        "target_agent_url": target_agent_url,
+                    }
+                elif isinstance(event, tuple) and len(event) == 2:
+                    # (Task, UpdateEvent) tuple - extract the task
+                    task, update_event = event
+                    return {
+                        "status": "success",
+                        "response": {
+                            "task": task.model_dump(mode="python", exclude_none=True),
+                            "update": (
+                                update_event.model_dump(mode="python", exclude_none=True) if update_event else None
+                            ),
+                        },
+                        "message_id": message_id,
+                        "target_agent_url": target_agent_url,
+                    }
+                else:
+                    # Fallback for unexpected response types
+                    return {
+                        "status": "success",
+                        "response": {"raw_response": str(event)},
                         "message_id": message_id,
                         "target_agent_url": target_agent_url,
                     }
@@ -826,15 +875,15 @@ class A2AClientToolProvider:
             }
 ```
 
-We provide three asynchronous methods as LangChain Tools: `a2a_discover_agent`, `a2a_list_discovered_agents`, and `a2a_send_message`.
-Since the `@tool` decorator cannot be used with instance methods, we wrap them using `StructuredTool.from_function` in the `tools` property.
+LangChainのToolとして、`a2a_discover_agent`, `a2a_list_discovered_agents`, `a2a_send_message`の3つの非同期メソッドを提供しています。
+`@tool`デコレータをインスタンスメソッドで使用することはできないため、`tools`プロパティで`StructuredTool.from_function`を使用してラップしています。
 
 https://github.com/langchain-ai/langchain/discussions/9404
 
 #### Supervisor Agent
 
-Finally, we implement the Supervisor agent.
-Using the three tools defined in `A2AClientToolProvider` (`a2a_discover_agent`, `a2a_list_discovered_agents`, `a2a_send_message`), we connect to sub-agents and delegate tasks.
+最後に、Supervisorエージェントを実装します。
+`A2AClientToolProvider`で定義した、`a2a_discover_agent`, `a2a_list_discovered_agents`, `a2a_send_message`の3つのツールを使用して、サブエージェントに接続、タスクを委譲します。
 
 ```python
 import asyncio
@@ -866,8 +915,8 @@ async def main():
         "messages": [
             {
                 "role": "user",
-                "content": "What's the weather in Tokyo?"
-                # "content": "How much is 1 USD in JPY?"
+                "content": "今日の東京の天気は？"
+                # "content": "1ドルは何円？"
             }
         ]
     })
@@ -878,49 +927,49 @@ async def main():
 asyncio.run(main())
 ```
 
-※Similar to the implementation without A2A Protocol, you can switch the commented user messages to see which agent gets assigned the task.
+※A2A Protocolを使わずに実装した時と同様に、コメントアウトされているユーザメッセージを切り替えることで、どちらのエージェントにタスクが割り当てられるかを確認できます。
 
-### Running the Application
+### 実行
 
-Save the above code as `a2a/supervisor/__main__.py` and run with the following commands:
+上記のコードを`a2a/supervisor/__main__.py`として保存し、以下のコマンドで実行します。
 
 ```sh
-uv run a2a/sub_agents/currency_agent
+uv run a2a/currency_agent
 ```
 
 ```sh
-uv run a2a/sub_agents/weather_agent
+uv run a2a/weather_agent
 ```
 
 ```sh
 uv run a2a/supervisor
 ```
 
-When executed, the Supervisor agent starts up, accesses each sub-agent's `/.well-known/agent-card.json` to retrieve AgentCards, then assigns tasks to the appropriate sub-agent based on user questions and returns results. You can see logs of this process.
+実行すると、Supervisorエージェントが起動し、各サブエージェントの`/.well-known/agent-card.json`にアクセスし、AgentCardを取得下のち、ユーザーからの質問に基づいて適切なサブエージェントにタスクを割り当て、結果を返すログが見れます。
 
-## Summary
+### まとめ
 
-In this article, we explained how to build multi-agent systems using LangGraph.
-We particularly focused on implementing agent-to-agent communication using the A2A protocol.
-We demonstrated how a Supervisor agent coordinates with various sub-agents to provide appropriate information in response to user requests.
+本記事では、LangGraphを用いたマルチエージェントシステムの構築方法について解説しました。
+特に、A2Aプロトコルを利用したエージェント間通信の実装に焦点を当てました。
+Supervisorエージェントを中心に、各サブエージェントがどのように連携し、ユーザーのリクエストに応じて適切な情報を提供するかを示しました。
 
-We hope this will serve as a reference for those developing loosely coupled multi-agent systems combining LangGraph and the A2A protocol in the future.
+今後、LangGraphとA2Aプロトコルを組み合わせた疎結合なマルチエージェントシステムの開発をされる方の参考になれば幸いです。
 
-## Referenced Code
+### 参考にしたコード
 
-### Supervisor-Type Multi-Agent
+#### Supervisor型マルチエージェント
 
 https://github.com/langchain-ai/langgraph-supervisor-py
 
-### Adapter Implementation
+#### Adapter
 
 https://github.com/a2aproject/a2a-samples/blob/main/samples/python/agents/langgraph/app/agent.py
 
-### AgentExecutor Implementation
+#### AgentExecutor
 
 https://github.com/a2aproject/a2a-samples/blob/main/samples/python/agents/langgraph/app/agent_executor.py
 
-### A2A Client
+#### A2A Client
 
 https://strandsagents.com/latest/documentation/docs/user-guide/concepts/multi-agent/agent-to-agent/#strands-a2a-tool
 
