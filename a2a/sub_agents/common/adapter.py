@@ -19,8 +19,6 @@ class ResponseFormat(BaseModel):
 
 
 class LangGraphAgentAdapter:
-    """CurrencyAgent - a specialized assistant for currency convesions."""
-
     def __init__(self, agent: Runnable):
         self.graph = agent
 
