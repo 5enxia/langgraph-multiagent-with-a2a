@@ -479,6 +479,29 @@ wheels = [
 ]
 
 [[package]]
+name = "langgraph-multiagent-with-a2a"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "a2a-sdk", extra = ["http-server"] },
+    { name = "langchain" },
+    { name = "langchain-google-genai" },
+    { name = "langchain-openai" },
+    { name = "langgraph" },
+    { name = "langgraph-supervisor" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "a2a-sdk", extras = ["http-server"], specifier = ">=0.3.6" },
+    { name = "langchain", specifier = ">=0.3.27" },
+    { name = "langchain-google-genai", specifier = ">=2.1.12" },
+    { name = "langchain-openai", specifier = ">=0.3.33" },
+    { name = "langgraph", specifier = ">=0.6.7" },
+    { name = "langgraph-supervisor", specifier = ">=0.0.29" },
+]
+
+[[package]]
 name = "langgraph-prebuilt"
 version = "0.6.4"
 source = { registry = "https://pypi.org/simple" }
@@ -533,29 +556,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/fe/d5/4cc88f246ce615a518a715cd2bf40001d1678ad6805a3706a90570adca8f/langsmith-0.4.30.tar.gz", hash = "sha256:388fe1060aca6507be41f417c7d4168a92dffe27f28bb6ef8a1bfee4a59f3681", size = 958857, upload-time = "2025-09-22T19:05:14.156Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/ae/d1/b2b2ea7b443c6b028aca209d2e653256912906900cc146e64c65201211b7/langsmith-0.4.30-py3-none-any.whl", hash = "sha256:110767eb83e6da2cc99cfc61958631b5c36624758b52e7af35ec5550ad846cb3", size = 386300, upload-time = "2025-09-22T19:05:11.819Z" },
-]
-
-[[package]]
-name = "mori-t-supervisor-agent"
-version = "0.1.0"
-source = { virtual = "." }
-dependencies = [
-    { name = "a2a-sdk", extra = ["http-server"] },
-    { name = "langchain" },
-    { name = "langchain-google-genai" },
-    { name = "langchain-openai" },
-    { name = "langgraph" },
-    { name = "langgraph-supervisor" },
-]
-
-[package.metadata]
-requires-dist = [
-    { name = "a2a-sdk", extras = ["http-server"], specifier = ">=0.3.6" },
-    { name = "langchain", specifier = ">=0.3.27" },
-    { name = "langchain-google-genai", specifier = ">=2.1.12" },
-    { name = "langchain-openai", specifier = ">=0.3.33" },
-    { name = "langgraph", specifier = ">=0.6.7" },
-    { name = "langgraph-supervisor", specifier = ">=0.0.29" },
 ]
 
 [[package]]
