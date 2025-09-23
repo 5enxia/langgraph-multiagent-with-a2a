@@ -9,8 +9,8 @@ logger = logging.getLogger(__name__)
 
 # Create A2A client tool provider with known agent URLs
 provider = A2AClientToolProvider(known_agent_urls=[
-    "http://0.0.0.0:20000", # Currency Expert
-    "http://0.0.0.0:30000", # Weather Expert
+    "http://0.0.0.0:10000", # Currency Expert
+    "http://0.0.0.0:20000", # Weather Expert
 ])
 
 # Create agent with A2A client tools
@@ -30,7 +30,7 @@ async def main():
             {
                 "role": "user",
                 "content": "今日の東京の天気は？"
-                # "content": "1ドルは何円？currency agentを使って"
+                # "content": "1ドルは為替で何円ですか？"
             }
         ]
     })
