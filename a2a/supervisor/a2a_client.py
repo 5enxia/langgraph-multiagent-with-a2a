@@ -1,14 +1,3 @@
-"""
-A2A (Agent-to-Agent) Protocol Client Tool for Strands Agents.
-
-This tool provides functionality to discover and communicate with A2A-compliant agents
-
-Key Features:
-- Agent discovery through agent cards from multiple URLs
-- Message sending to specific A2A agents
-- Push notification support for real-time task completion alerts
-"""
-
 import asyncio
 import logging
 from typing import Any
@@ -59,7 +48,7 @@ class A2AClientToolProvider:
 
         if self._webhook_url and self._webhook_token:
             self._push_config = PushNotificationConfig(
-                id=f"strands-webhook-{uuid4().hex[:8]}", url=self._webhook_url, token=self._webhook_token
+                id=f"langgraph-webhook-{uuid4().hex[:8]}", url=self._webhook_url, token=self._webhook_token
             )
 
     @property
