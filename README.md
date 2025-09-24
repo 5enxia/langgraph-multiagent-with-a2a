@@ -2,6 +2,8 @@
 
 ## Overview
 
+![Overview](https://storage.googleapis.com/zenn-user-upload/18c2620bb9dc-20250924.png)
+
 This repository demonstrates how to implement a Supervisor-type multi-agent system using the A2A Protocol, originally created with LangGraph.
 We first explain how to build a Supervisor-type multi-agent system using `langgraph-supervisor`, then reimplement the same system using the A2A Protocol.
 

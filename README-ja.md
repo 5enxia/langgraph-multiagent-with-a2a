@@ -2,6 +2,8 @@
 
 ## 概要
 
+![Overview](https://storage.googleapis.com/zenn-user-upload/18c2620bb9dc-20250924.png)
+
 このリポジトリでは、LangGraphを使用して作成したSupervisor型マルチエージェントをA2A Protocolを用いて実装する方法を示します。
 はじめに、`langgraph-supervisor`を用いたSupervisor型マルチエージェントシステムの構築方法を説明し、その後、A2A Protocolを用いて同様のシステムを再実装します。
 
