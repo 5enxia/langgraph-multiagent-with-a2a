@@ -11,4 +11,5 @@ dependencies = [
     "langchain-openai>=0.3.33",
     "langgraph>=0.6.7",
     "langgraph-supervisor>=0.0.29",
+    "uvicorn>=0.37.0",
 ]
